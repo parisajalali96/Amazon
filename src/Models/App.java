@@ -8,6 +8,7 @@ import java.util.ArrayList;
 public class App {
     private static final ArrayList<User> users = new ArrayList<>();
     private static final ArrayList<Store> stores = new ArrayList<>();
+    private static final ArrayList<Product> products = new ArrayList<>();
     private static User loggedinUser = null;
     private static Store loggedinStore = null;
     private static Menu currentMenu = Menu.LoginMenu;
@@ -17,6 +18,9 @@ public class App {
     }
     public static ArrayList<Store> getStores() {
         return stores;
+    }
+    public static ArrayList<Product> getProducts() {
+        return products;
     }
     public static User getLoggedinUser() {
         return loggedinUser;
