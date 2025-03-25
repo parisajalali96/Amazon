@@ -1,6 +1,7 @@
 package Models;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class User {
     String firstName;
@@ -54,7 +55,7 @@ public class User {
     public ArrayList<Order> getOrders() {
         return orders;
     }
-    public void addOrder(ArrayList<Product> products, Address address ) {
+    public void addOrder(HashMap<Product, Integer> products, Address address ) {
         int newId = orders.size() + 101;
         this.orders.add(new Order(App.getLoggedinUser(), products, address, newId));
     }

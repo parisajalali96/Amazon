@@ -4,14 +4,14 @@ public class CreditCard {
     String cardNumber;
     String expiryDate;
     String cvv;
-    double value;
+    double balance;
     int cardID;
 
-    public CreditCard(String cardNumber, String expiryDate, String cvv, double value,  int cardID) {
+    public CreditCard(String cardNumber, String expiryDate, String cvv, double balance,  int cardID) {
         this.cardNumber = cardNumber;
         this.expiryDate = expiryDate;
         this.cvv = cvv;
-        this.value = value;
+        this.balance = balance;
         this.cardID = cardID;
     }
     public String getCardNumber() {
@@ -23,11 +23,11 @@ public class CreditCard {
     public String getCvv() {
         return cvv;
     }
-    public double getValue() {
-        return value;
+    public double getBalance() {
+        return balance;
     }
-    public void increaseValue(double amount) {
-        value += amount;
+    public void increaseBalance(double amount) {
+        balance += amount;
     }
     public int getCardID() {
         return cardID;

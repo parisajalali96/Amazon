@@ -2,6 +2,7 @@ package Controllers;
 
 import Models.*;
 import Models.enums.LoginCommands;
+import Models.enums.Menu;
 import Models.enums.UserCommands;
 
 import java.sql.SQLOutput;
@@ -29,9 +30,10 @@ public class UserMenuController {
             System.out.println("Total Items Ordered: " + myOrders.size());
             System.out.println("Products (Sorted by Name) : ");
             int counter = 1;
-            ArrayList<Product> products = order.getProducts();
-            products.sort(Comparator.comparing(Product::getName));
-            for (Product product : products) {
+            HashMap<Product, Integer> products = order.getProducts();
+            List<Map.Entry<Product, Integer>> productList = new ArrayList<>(products.entrySet());
+            productList.sort(Comparator.comparing(entry -> entry.getKey().getName()));
+            for (Product product : products.keySet()) {
                 System.out.println(counter + "-" + product.getName());
                 counter++;
             }
@@ -45,11 +47,12 @@ public class UserMenuController {
         System.out.println("Products in this order:");
         Order order = getOrder(id);
         if (order == null) return new Result(false, "Order not found");
-        ArrayList<Product> products = order.getProducts();
-        products.sort(Comparator.comparing(Product::getID));
+        HashMap<Product, Integer> products = order.getProducts();
+        List<Map.Entry<Product, Integer>> productList = new ArrayList<>(products.entrySet());
+        productList.sort(Comparator.comparing(entry -> entry.getKey().getName()));
         int counter = 1;
         double totalPrice = 0;
-        for (Product product : products) {
+        for (Product product : products.keySet()) {
             System.out.println(counter + "-" + " Product Name: " + product.getName());
             System.out.println("ID: " + product.getID());
             System.out.println("Brand: " + product.getBrand());
@@ -159,9 +162,9 @@ public class UserMenuController {
             return new Result(false, "No credit card found.");
         }
         CreditCard creditCard = getCreditCard(ID);
-        creditCard.increaseValue(value);
+        creditCard.increaseBalance(value);
         return new Result(true, "$" + value + " has been added to the credit card " + ID +
-                ". New balance: $" + creditCard.getValue() + ".");
+                ". New balance: $" + creditCard.getBalance() + ".");
     }
 
     public Result creditCardBalance(String id) {
@@ -169,7 +172,7 @@ public class UserMenuController {
         if(getCreditCard(ID) == null) {
             return new Result(false, "No credit card found.");
         }
-        return new Result(true, "Current balance : $" + getCreditCard(ID).getValue());
+        return new Result(true, "Current balance : $" + getCreditCard(ID).getBalance());
     }
 
     public Result showCart() {
@@ -179,11 +182,103 @@ public class UserMenuController {
         }
         System.out.println("Your Shopping Cart:");
         System.out.println("------------------------------------");
-        for (Product product : shoppingCart.getProducts()) {
+        HashMap<Product,Integer> products = shoppingCart.getProducts();
+        for (Product product : shoppingCart.getProducts().keySet()) {
             System.out.println("Product ID :" + product.getID());
             System.out.println("Name :" + product.getName());
+            System.out.println("Quantity: " + products.get(product));
+            if(products.get(product) > 1) System.out.println("Price :" + product.getPrice() + " each");
+            else System.out.println("Price : $" + product.getPrice());
+            System.out.println("Total Price: $" + product.getPrice().getNum()*products.get(product));
+            System.out.println("Brand :" + product.getBrand());
+            System.out.printf("Rating: %.1f/5\n", product.getRating());
+            System.out.println("------------------------------------");
         }
         return new Result(true, "");
+    }
+
+    public Result checkout(String cardID, String addID) {
+        Matcher matcher = null;
+        int addressID = Integer.parseInt(addID);
+        int creditCardID = Integer.parseInt(cardID);
+        Address address;
+        CreditCard creditCard;
+        double totalPrice = getShoppingCartBalance();
+        if(App.getLoggedinUser().getShoppingCart().getProducts().isEmpty()) {
+            return new Result(false, "Your shopping cart is empty.");
+        } else if (getAddress(addressID) == null) {
+            return new Result(false, "The provided address ID is invalid.");
+        } else if (getCreditCard(creditCardID) == null) {
+            return new Result(false, "The provided card ID is invalid.");
+        } else if (getCreditCard(creditCardID).getBalance() < totalPrice) {
+            return new Result(false, "Insufficient balance in the selected card.");
+        }
+        creditCard = getCreditCard(creditCardID);
+        address = getAddress(addressID);
+        App.getLoggedinUser().addOrder(App.getLoggedinUser().getShoppingCart().getProducts(), address);
+        clearShoppingCart();
+        String addressDetails = address.getStreet()+ ", " + address.getCity() + ", " + address.getCountry();
+        return new Result(true, "Order has been placed successfully!\n" +
+                "Order ID: +" + (App.getLoggedinUser().getOrders().size() + 101) +"\n" +
+                "Total Paid: $" + totalPrice+"\n" +
+                "Shipping to: " + addressDetails);
+    }
+
+    public Result removeFromShoppingCart(String productId, String quantity) {
+        int quantityInt = Integer.parseInt(quantity);
+        int ID = Integer.parseInt(productId);
+        Product productToRemove;
+        if(App.getLoggedinUser().getShoppingCart().getProducts().isEmpty()) {
+            return new Result(false, "Your shopping cart is empty.");
+        } else if ((productToRemove = getProductFromCart(ID)) == null) {
+            return new Result(false, "The product with ID " + ID + " is not in your cart.");
+        } else if (quantityInt <= 0) {
+            return new Result(false, "Quantity must be a positive number.");
+        } else if(App.getLoggedinUser().getShoppingCart().getProducts().get(productToRemove) < quantityInt) {
+            int availableQuantity = App.getLoggedinUser().getShoppingCart().getProducts().get(productToRemove);
+            return new Result(false, "You only have " + availableQuantity +  " of \"" + productToRemove.getName() + "\" in your cart.");
+        }
+        App.getLoggedinUser().getShoppingCart().removeProduct(productToRemove, quantityInt);
+        int newQuantity = App.getLoggedinUser().getShoppingCart().getProducts().get(productToRemove);
+        if (newQuantity == 0) return new Result(true, "\"" + productToRemove.getName() + "\" has been completely removed from your cart.");
+        else return new Result(true, "Successfully removed " + quantityInt + " of \"" + productToRemove.getName() + "\" from your cart.");
+    }
+
+    public Result goBack() {
+      App.setCurrentMenu(Menu.MainMenu);
+      return new Result(true, "Redirecting to the Main Menu ...");
+    }
+
+    public Product getProductFromCart(int productID) {
+        ShoppingCart shoppingCart = App.getLoggedinUser().getShoppingCart();
+        for (Product product : shoppingCart.getProducts().keySet()) {
+            if(product.getID() == productID) {
+                return product;
+            }
+        }
+        return null;
+    }
+    public void clearShoppingCart() {
+        ShoppingCart shoppingCart = App.getLoggedinUser().getShoppingCart();
+        for (Product product : shoppingCart.getProducts().keySet()) {
+            shoppingCart.removeProduct(product, shoppingCart.getProducts().get(product));
+        }
+    }
+    public double getShoppingCartBalance() {
+        double balance = 0;
+        HashMap<Product,Integer> products = App.getLoggedinUser().getShoppingCart().getProducts();
+        for (Product product : products.keySet()) {
+            balance += product.getPrice().getNum()*products.get(product);
+        }
+        return balance;
+    }
+    public Address getAddress (int id) {
+        for(Address address : App.getLoggedinUser().getAddresses()) {
+            if(address.getAddressId() == id) {
+                return address;
+            }
+        }
+        return null;
     }
     public CreditCard getCreditCard(int id) {
         for (CreditCard creditCard : App.getLoggedinUser().getCreditCards()) {

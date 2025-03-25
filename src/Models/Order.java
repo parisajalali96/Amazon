@@ -1,24 +1,25 @@
 package Models;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Order {
     User customer;
-    ArrayList<Product> products;
+    HashMap<Product, Integer> products;
     Address shippingAddress;
     int orderID;
 
-    public Order(User customer, ArrayList<Product> products, Address shippingAddress, int id) {
+    public Order(User customer, HashMap<Product, Integer> products, Address shippingAddress, int newID) {
         this.customer = customer;
         this.products = products;
         this.shippingAddress = shippingAddress;
-        this.orderID = id;
+        this.orderID = newID;
     }
 
     public User getCustomer() {
         return customer;
     }
-    public ArrayList<Product> getProducts() {
+    public HashMap<Product, Integer> getProducts() {
         return products;
     }
     public Address getShippingAddress() {
