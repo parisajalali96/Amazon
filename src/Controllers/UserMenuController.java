@@ -57,9 +57,9 @@ public class UserMenuController {
             System.out.println("ID: " + product.getID());
             System.out.println("Brand: " + product.getBrand());
             System.out.printf("Rating: %.1f/5\n", product.getRating());
-            System.out.println("Price: $" + product.getPrice().getNum());
+            System.out.println("Price: $" + product.getPrice());
             System.out.println();
-            totalPrice += product.getPrice().getNum();
+            totalPrice += product.getPrice();
         }
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
         System.out.println("**Total Cost: $" + totalPrice + "**");
@@ -133,6 +133,31 @@ public class UserMenuController {
         return new Result(true, "Address successfully added with id " + App.getLoggedinUser().getAddresses().size());
     }
 
+    public Result deleteAddress(String addressId) {
+        Matcher matcher = null;
+        int ID = Integer.parseInt(addressId);
+        if(getAddress(ID) == null) {
+            return new Result(false, "No address found.");
+        }
+        App.getLoggedinUser().removeAddress(getAddress(ID));
+        return new Result(true, "Address with id " + ID + " deleted successfully.");
+    }
+
+    public void listAddresses() {
+        for (Address address : App.getLoggedinUser().getAddresses()) {
+            System.out.println("Saved Addresses");
+            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            System.out.println();
+            System.out.println("Address " + address.getAddressId() + ":");
+            System.out.println("Postal Code: " + address.getPostalCode());
+            System.out.println("Country: " + address.getCountry());
+            System.out.println("City: " + address.getCity());
+            System.out.println("Street: " + address.getStreet());
+            System.out.println();
+            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        }
+    }
+
     public Result addCreditCard(String cardNumber, String expDate, String cvv, String initialValue) {
         Matcher matcher = null;
         int value = Integer.parseInt(initialValue);
@@ -189,7 +214,7 @@ public class UserMenuController {
             System.out.println("Quantity: " + products.get(product));
             if(products.get(product) > 1) System.out.println("Price :" + product.getPrice() + " each");
             else System.out.println("Price : $" + product.getPrice());
-            System.out.println("Total Price: $" + product.getPrice().getNum()*products.get(product));
+            System.out.println("Total Price: $" + product.getPrice()*products.get(product));
             System.out.println("Brand :" + product.getBrand());
             System.out.printf("Rating: %.1f/5\n", product.getRating());
             System.out.println("------------------------------------");
@@ -268,7 +293,7 @@ public class UserMenuController {
         double balance = 0;
         HashMap<Product,Integer> products = App.getLoggedinUser().getShoppingCart().getProducts();
         for (Product product : products.keySet()) {
-            balance += product.getPrice().getNum()*products.get(product);
+            balance += product.getPrice()*products.get(product);
         }
         return balance;
     }

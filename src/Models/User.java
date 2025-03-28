@@ -52,6 +52,9 @@ public class User {
         int newId = addresses.size() + 1;
         this.addresses.add(new Address(country, city, street, postalCode, newId));
     }
+    public void removeAddress(Address address) {
+        this.addresses.remove(address);
+    }
     public ArrayList<Order> getOrders() {
         return orders;
     }

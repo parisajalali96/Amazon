@@ -4,6 +4,7 @@ import Models.enums.Menu;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class App {
     private static final ArrayList<User> users = new ArrayList<>();
@@ -13,6 +14,7 @@ public class App {
     private static User loggedinUser = null;
     private static Store loggedinStore = null;
     private static Menu currentMenu = Menu.LoginMenu;
+    private static final Scanner scanner = new Scanner(System.in);
 
     public static ArrayList<User> getUsers() {
         return users;
@@ -46,5 +48,8 @@ public class App {
     }
     public static void setLoggedinStore(Store loggedinStore) {
         App.loggedinStore = loggedinStore;
+    }
+    public static Scanner getScanner() {
+
     }
 }
