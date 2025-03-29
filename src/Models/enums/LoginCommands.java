@@ -4,15 +4,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public enum LoginCommands implements Command {
-    Name("[A-Z][a-zA-Z]{2,}"),
+    Name("[A-Z][a-z]{2,}"),
     Password("(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{3,}"),
-    Email("[A-Za-z0-9]+(?:\\.[A-Za-z0-9]+)?@[a-z]+.com"),
+    Email("([A-Za-z0-9]+(?:\\.[A-Za-z0-9]+)?|\\.)@[a-z]+\\.com"),
     CreateUser("\\s*create a user account\\s+-fn\\s+(?<firstName>\\S+(\\s*\\S+)*)\\s+" +
             "-ln\\s+(?<lastName>\\S+(\\s*\\S+)*)\\s+" +
             "-p\\s+(?<password>\\S+(\\s*\\S+)*)\\s+" +
             "-rp\\s+(?<repeatPassword>\\S+(\\s*\\S+)*)\\s+" +
             "-e\\s+(?<email>\\S+(\\s*\\S+)*)\\s*"),
-    CreateStoreAccount("\\s*create a store account\\s+-b\\s+(?<brand>\\S+(\\s*\\S+)*)\\s+" +
+    CreateStoreAccount("\\s*create a store account\\s+-b\\s+\"(?<brand>\\S+(\\s*\\S+)*)\"\\s+" +
             "-p\\s+(?<password>\\S+(\\s*\\S+)*)\\s+" +
             "-rp\\s+(?<repeatedPassword>\\S+(\\s*\\S+)*)\\s+" +
             "-e\\s+(?<email>\\S+(\\s*\\S+)*)\\s*"),

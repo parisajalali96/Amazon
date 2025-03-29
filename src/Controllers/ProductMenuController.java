@@ -15,6 +15,8 @@ import java.util.regex.Matcher;
 
 public class ProductMenuController {
 
+    private static int startPoint;
+    private static String currentSortBy;
     public ArrayList<Product> sortBy (String sortBy) {
         ArrayList<Product> products = App.getProducts();
         if (SortByTypes.Rate.matches(sortBy)) {
@@ -29,27 +31,50 @@ public class ProductMenuController {
         return products;
     }
 
-    public Product showProducts(String sortBy, int start) { //show next in menu
+    public Result showNext10Products() {
+        showProducts(currentSortBy, startPoint);
+        return new Result(true, "");
+    }
+
+    public Result showPrevious10Products() {
+        showProducts(currentSortBy, startPoint - 19);
+        return new Result(true, "");
+    }
+    public Result showProducts(String sortBy, int start) { //show next in menu
         ArrayList<Product> products = sortBy(sortBy);
         System.out.println("Product List (Sorted by: " + sortBy.trim() + ")");
         Product lastProductShown = null;
         for (int i = start; i < start + 10; i++) {
             System.out.println("------------------------------------------------");
-            System.out.println("ID : " + products.get(i).getID());
+            System.out.print("ID : " + products.get(i).getID());
+            if(products.get(i).getDiscount() != null) {
+                System.out.print("  **(On Sale! " + products.get(i).getDiscount().getQuantity() + " units discounted)** ");
+            } else if(products.get(i).getInStock() == 0) {
+                System.out.print("  **(Sold out!)**");
+            }
+            System.out.println();
             System.out.println("Name : " + products.get(i).getName());
             System.out.printf("Rate : %.1f/5\n", products.get(i).getRating());
-            System.out.println("Price : " + products.get(i).getPrice());
+            if(products.get(i).getDiscount() == null) {
+                System.out.println("Price : $" + products.get(i).getPrice());
+            } else {
+                System.out.println("Price : ~$" + products.get(i).getPrice() + "~ → $" +
+                        products.get(i).getPrice()*(1-products.get(i).getDiscount().getDiscountPercentage()/100) +
+                        "(-" + products.get(i).getDiscount().getDiscountPercentage() + "%)");
+            }
             System.out.println("Brand : " + products.get(i).getBrand());
             System.out.println("Stock : " + products.get(i).getInStock());
             System.out.println("------------------------------------------------");
             if(i == 9) lastProductShown = products.get(i);
         }
         if (products.size() > 10) {
-            System.out.println("(Showing " + (products.indexOf(lastProductShown) - 8 ) + "-" + (products.indexOf(lastProductShown) + 1) + "out of " + products.size() + ")" +
+            System.out.println("(Showing " + (start + 1) + "-" + (start + 10) + "out of "
+                    + products.size() + ")" +
                     "Use `show next 10 products' to see more.");
         }
-        new Result(true, "");
-        return lastProductShown;
+        startPoint = start + Math.min(10, products.indexOf(lastProductShown) + 1);
+        currentSortBy = sortBy.trim();
+        return new Result(true, "");
     }
 
     public Result showProductInfo(String productId) {
@@ -60,10 +85,17 @@ public class ProductMenuController {
         System.out.println("Product Details");
         System.out.println("------------------------------------------------");
         System.out.print("Name : " + getProduct(ID).getName());
-        if (getProduct(ID).getInStock() == 0) System.out.print(" **(Sold out!)**");
-        //else if discount
+        if(getProduct(ID).getDiscount() != null) System.out.println("  **(On Sale! " +
+                getProduct(ID).getDiscount().getQuantity() + " units discounted)**");
+        else if (getProduct(ID).getInStock() == 0) System.out.print(" **(Sold out!)**");
         System.out.println();
-        System.out.println("Price : " + getProduct(ID).getPrice());
+        if(getProduct(ID).getDiscount() == null) {
+            System.out.println("Price : $" + getProduct(ID).getPrice());
+        } else {
+            System.out.println("Price : ~$" + getProduct(ID).getPrice() + "~ → $" +
+                    getProduct(ID).getPrice()*(1-getProduct(ID).getDiscount().getDiscountPercentage()/100) +
+                    "(-" + getProduct(ID).getDiscount().getDiscountPercentage() + "%)");
+        }
         System.out.println("Brand : " + getProduct(ID).getBrand());
         System.out.println("Number of Products Remaining : " + getProduct(ID).getInStock());
         System.out.println("About this item : ");
@@ -74,7 +106,9 @@ public class ProductMenuController {
             System.out.println("------------------------------------------------");
             for (Review review : getProduct(ID).getReviews()) {
                 System.out.println(review.getCustomer() + " (" + review.getRating() + "/5)");
-                System.out.println("\"" + review.getComment() + "\"");
+                if(!review.getComment().isEmpty()) {
+                    System.out.println("\"" + review.getComment() + "\"");
+                }
                 System.out.println("------------------------------------------------");
             }
         }
@@ -128,6 +162,10 @@ public class ProductMenuController {
             }
         }
         return null;
+    }
+
+    public Result invalidCommand() {
+        return new Result(false, "invalid command.");
     }
 
 }

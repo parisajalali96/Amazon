@@ -7,6 +7,8 @@ public record Result(boolean success, String message) {
         printMessage(message);
     }
     public static void printMessage(String message) {
-        System.out.println(message);
+        if(!message.isEmpty()) {
+            System.out.println(message);
+        }
     }
 }

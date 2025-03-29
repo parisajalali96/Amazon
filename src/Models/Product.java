@@ -9,7 +9,7 @@ public class Product {
     double sellingPrice;
     double productCost;
     int ID;
-    int numberSold;
+    int numberSold = 0;
     int inStock;
     ArrayList<Review> reviews;
     String description;

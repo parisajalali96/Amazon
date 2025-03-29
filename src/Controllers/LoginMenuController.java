@@ -42,7 +42,7 @@ public class LoginMenuController {
             return new Result(false, "Email already exists.");
         }
         App.getStores().add(new Store(brand, password, email));
-        return new Result(true, "Store account for " + brand + " created successfully.");
+        return new Result(true, "Store account for \"" + brand + "\" created successfully.");
     }//correct
 
     public Result loginAsUser (String email, String password) {
@@ -189,6 +189,6 @@ public class LoginMenuController {
 
 
     public Result invalidCommand() {
-        return new Result(false, "Invalid command.");
+        return new Result(false, "invalid command.");
     }
 }

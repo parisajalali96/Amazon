@@ -46,6 +46,6 @@ public class UserMenu implements AppMenu {
             controller.removeFromShoppingCart(matcher.group("productId"), matcher.group("amount"));
         } else if((matcher = UserCommands.GoBack.getMatcher(input)) != null) {
             controller.goBack();
-        }
+        } else controller.invalidCommand();
     }
 }

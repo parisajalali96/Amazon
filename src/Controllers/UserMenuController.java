@@ -42,7 +42,6 @@ public class UserMenuController {
     }
     public Result showOrderDetails(String orderId) {
         int id = Integer.parseInt(orderId); //could cause issues
-        System.out.println("Products in this order:");
         Order order = getOrder(id);
         if (order == null) return new Result(false, "Order not found");
         HashMap<Product, Integer> products = order.getProducts();
@@ -50,6 +49,7 @@ public class UserMenuController {
         productList.sort(Comparator.comparing(entry -> entry.getKey().getID()));
         int counter = 1;
         double totalPrice = 0;
+        System.out.println("Products in this order:");
         for (Map.Entry<Product, Integer> entry : productList) {
             System.out.println(counter++ + "-" + " Product Name: " + entry.getKey().getName());
             System.out.println("    ID: " + entry.getKey().getID());
@@ -106,7 +106,7 @@ public class UserMenuController {
 
     public Result editPassword(String newPassword, String oldPassword) {
         Matcher matcher = null;
-        if(isPassCorrect(oldPassword)) {
+        if(!isPassCorrect(oldPassword)) {
             return new Result(false, "Incorrect password. Please try again.");
         } else if (newPassword.equals(oldPassword)) {
             return new Result(false, "The new password must be different from the old password.");
@@ -146,9 +146,9 @@ public class UserMenuController {
     public Result listAddresses() {
         if(App.getLoggedinUser().getAddresses().isEmpty())
             return new Result(false, "No addresses found. Please add an address first.");
+        System.out.println("Saved Addresses");
+        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
         for (Address address : App.getLoggedinUser().getAddresses()) {
-            System.out.println("Saved Addresses");
-            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
             System.out.println();
             System.out.println("Address " + address.getAddressId() + ":");
             System.out.println("Postal Code: " + address.getPostalCode());
@@ -377,10 +377,8 @@ public class UserMenuController {
     }
 
     public boolean isPassCorrect(String password) {
-        for (User user : App.getUsers()) {
-            if (user.getPassword().equals(App.getLoggedinUser().getPassword())) {
-                return true;
-            }
+        if(App.getLoggedinUser().getPassword().equals(password)) {
+            return true;
         }
         return false;
     }
@@ -392,6 +390,10 @@ public class UserMenuController {
             }
         }
         return false;
+    }
+
+    public Result invalidCommand() {
+        return new Result(false, "invalid command");
     }
 
 }

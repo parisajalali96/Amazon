@@ -29,7 +29,7 @@ public enum UserCommands implements Command {
     ExpirationDate("(0[1-9]|1[0-2])\\/\\d{2}"),
     CVV("\\d{3,4}"),
     Value("\\d+(\\\\.\\\\d+)?"),
-    ChargeCreditCard("\\s*Charge credit card\\s+-a\\s+(?<amount>\\d+(\\\\.\\\\d+)?)\\s+" +
+    ChargeCreditCard("\\s*Charge credit card\\s+-a\\s+(?<amount>-?\\d+(\\\\.\\\\d+)?)\\s+" +
             "-id\\s+(?<cardId>-?\\d+)"),
     CheckCreditCardBalance("\\s*Check credit card balance\\s+-id\\s+(?<cardId>-?\\d+)\\s*"),
     ShowProductsinCart("\\s*show products in cart\\s*"),
