@@ -7,23 +7,23 @@ public enum LoginCommands implements Command {
     Name("[A-Z][a-zA-Z]{2,}"),
     Password("(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)[A-Za-z\\d]{3,}"),
     Email("[A-Za-z0-9]+(?:\\.[A-Za-z0-9]+)?@[a-z]+.com"),
-    CreateUser("create a user account\\s+-fn\\s+(?<firstName>\\S+)\\s+" +
-            "-ln\\s+(?<lastName>\\S+)\\s+" +
-            "-p\\s+(?<password>\\S+)\\s+" +
-            "-rp\\s+(?<repeatPassword>\\S+)\\s+" +
-            "-email\\s+(?<email>\\S+)"),
-    CreateStoreAccount("create a store account\\s+-b\\s+(?<brand>.+{3,})\\s+" +
-            "-p\\s+(?<password>\\S+)\\s+" +
-            "-rp\\s+(?<repeatedPassword>\\S+)\\s+" +
-            "-email\\s+(?<email>\\S+)"),
-    LoginAsUser("login as user\\s+-e\\s+(?<email>\\S+)\\s+" +
-            "-p\\s+(?<password>\\S+)"),
-    LoginAsStore("login as store\\s+-e\\s+(?<email>\\S+)\\s+" +
-            "-p\\s+(?<password>\\S+)"),
-    Logout("logout"),
-    DeleteAccount("delete account\\s+-p\\s+(?<password>\\S+)\\s+" +
-            "-rp\\s+(?<repeatedPassword>\\S+)"),
-    GoBack("go back");
+    CreateUser("\\s*create a user account\\s+-fn\\s+(?<firstName>\\S+(\\s*\\S+)*)\\s+" +
+            "-ln\\s+(?<lastName>\\S+(\\s*\\S+)*)\\s+" +
+            "-p\\s+(?<password>\\S+(\\s*\\S+)*)\\s+" +
+            "-rp\\s+(?<repeatPassword>\\S+(\\s*\\S+)*)\\s+" +
+            "-e\\s+(?<email>\\S+(\\s*\\S+)*)\\s*"),
+    CreateStoreAccount("\\s*create a store account\\s+-b\\s+(?<brand>\\S+(\\s*\\S+)*)\\s+" +
+            "-p\\s+(?<password>\\S+(\\s*\\S+)*)\\s+" +
+            "-rp\\s+(?<repeatedPassword>\\S+(\\s*\\S+)*)\\s+" +
+            "-e\\s+(?<email>\\S+(\\s*\\S+)*)\\s*"),
+    LoginAsUser("\\s*login as user\\s+-e\\s+(?<email>\\S+(\\s*\\S+)*)\\s+" +
+            "-p\\s+(?<password>\\S+(\\s*\\S+)*)\\s*"),
+    LoginAsStore("\\s*login as store\\s+-e\\s+(?<email>\\S+(\\s*\\S+)*)\\s+" +
+            "-p\\s+(?<password>\\S+(\\s*\\S+)*)\\s*"),
+    Logout("\\s*logout\\s*"),
+    DeleteAccount("\\s*delete account\\s+-p\\s+(?<password>\\S+(\\s*\\S+)*)\\s+" +
+            "-rp\\s+(?<repeatedPassword>\\S+(\\s*\\S+)*)\\s*"),
+    GoBack("\\s*go back\\s*");
 
 
 

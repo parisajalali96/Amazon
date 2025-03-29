@@ -1,12 +1,10 @@
 package Controllers;
 
-import Models.App;
-import Models.Result;
-import Models.Store;
-import Models.User;
+import Models.*;
 import Models.enums.LoginCommands;
 import Models.enums.Menu;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 
 public class LoginMenuController {
@@ -26,30 +24,29 @@ public class LoginMenuController {
         } else if(emailExists(email)) {
             return new Result(false, "Email already exists.");
         }
-        App.getUsers().add(new User(firstName, lastName, password, email));
+        App.getUsers().add(new User(firstName, lastName, email, password));
         return new Result(true, "User account for " + firstName + " " + lastName +" created successfully.");
-    }
+    } //correct
 
     public Result createStoreAccount (String brand, String password, String rePassword, String email) {
         Matcher matcher = null;
-
         if(brand.length() < 3) {
             return new Result(false, "Brand name is too short.");
-        } else if( (matcher = LoginCommands.Password.getMatcher(password)) == null) {
+        } else if((matcher = LoginCommands.Password.getMatcher(password)) == null) {
             return new Result(false, "Incorrect password format.");
         } else if(!rePassword.equals(password)) {
             return new Result(false, "Re-entered password is incorrect.");
         } else if((matcher = LoginCommands.Email.getMatcher(email)) == null) {
             return new Result(false, "Incorrect email format.");
-        } else if(!emailExists(email)) {
+        } else if(emailExists(email)) {
             return new Result(false, "Email already exists.");
         }
         App.getStores().add(new Store(brand, password, email));
         return new Result(true, "Store account for " + brand + " created successfully.");
-    }
+    }//correct
 
     public Result loginAsUser (String email, String password) {
-        if(!emailExists(email)) {
+        if(getUser(email) == null) {
             return new Result(false, "No user account found with the provided email.");
         } else if(!userPasswordMatchesEmail(password, email)) {
             return new Result(false, "Password is incorrect.");
@@ -84,6 +81,23 @@ public class LoginMenuController {
         return new Result(true, "Logged out successfully. Redirecting to the MainMenu ...");
     }
 
+    public void emptyCart() {
+        ShoppingCart shoppingCart = App.getLoggedinUser().getShoppingCart();
+        if(shoppingCart == null) return;
+        for (Product product : shoppingCart.getProducts().keySet()) {
+            product.addInStock(shoppingCart.getProducts().get(product));
+            shoppingCart.getProducts().remove(product);
+        }
+    }
+
+    public void removeFromCarts() {
+        if (App.getLoggedinStore().getProducts().isEmpty()) return;
+        ArrayList<Product> products = App.getLoggedinStore().getProducts();
+        App.getProducts().removeAll(products);
+        for (User user : App.getUsers()) {
+            user.getShoppingCart().getProducts().keySet().removeAll(products);
+        }
+    }
     public Result deleteAccount(String password, String rePassword) { //extra stuff
         if(App.getLoggedinUser() == null && App.getLoggedinStore() == null) {
             return new Result(false, "You should login first.");
@@ -93,6 +107,7 @@ public class LoginMenuController {
             } else if(!userPasswordMatchesEmail(password, App.getLoggedinUser().getEmail())) {
                 return new Result(false, "Password is incorrect.");
             }
+            emptyCart();
             App.getUsers().remove(App.getLoggedinUser());
             App.setLoggedinUser(null);
             App.setCurrentMenu(Menu.MainMenu);
@@ -103,6 +118,7 @@ public class LoginMenuController {
             } else if(!userPasswordMatchesEmail(password, App.getLoggedinStore().getEmail())) {
                 return new Result(false, "Password is incorrect.");
             }
+            removeFromCarts();
             App.getStores().remove(App.getLoggedinStore());
             App.setLoggedinUser(null);
             App.setCurrentMenu(Menu.MainMenu);
@@ -161,6 +177,18 @@ public class LoginMenuController {
                 return true;
             }
         }
+
+        for (Store store : App.getStores()) {
+            if(store.getEmail().equals(email)) {
+                return true;
+            }
+        }
         return false;
+    }
+
+
+
+    public Result invalidCommand() {
+        return new Result(false, "Invalid command.");
     }
 }

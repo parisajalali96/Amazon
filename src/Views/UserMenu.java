@@ -16,7 +16,7 @@ public class UserMenu implements AppMenu {
         if((matcher = UserCommands.ListOrders.getMatcher(input)) != null) {
             controller.listMyOrders();
         } else if((matcher = UserCommands.ShowOrderDetails.getMatcher(input)) != null){
-            controller.showOrderDetails(matcher.group("groupId"));
+            controller.showOrderDetails(matcher.group("orderId"));
         } else if((matcher = UserCommands.EditName.getMatcher(input)) != null){
             controller.editName(matcher.group("firstName"), matcher.group("lastName"), matcher.group("password"));
         } else if((matcher = UserCommands.EditEmail.getMatcher(input)) != null){
@@ -33,11 +33,11 @@ public class UserMenu implements AppMenu {
             controller.listAddresses();
         } else if((matcher = UserCommands.AddCreditCard.getMatcher(input)) != null){
             controller.addCreditCard(matcher.group("cardNumber"), matcher.group("expirationDate"),
-                    matcher.group("cvv, "), matcher.group("initialValue"));
+                    matcher.group("cvv"), matcher.group("initialValue"));
         } else if((matcher = UserCommands.ChargeCreditCard.getMatcher(input)) != null){
-            controller.chargeCreditCard(matcher.group("amount"), matcher.group("cardID"));
+            controller.chargeCreditCard(matcher.group("amount"), matcher.group("cardId"));
         } else if((matcher = UserCommands.CheckCreditCardBalance.getMatcher(input)) != null){
-            controller.creditCardBalance(matcher.group("cardID"));
+            controller.creditCardBalance(matcher.group("cardId"));
         } else if((matcher = UserCommands.ShowProductsinCart.getMatcher(input)) != null) {
             controller.showCart();
         } else if((matcher = UserCommands.CheckOut.getMatcher(input)) != null) {

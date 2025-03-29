@@ -48,7 +48,7 @@ public class User {
     public ArrayList<Address> getAddresses() {
         return addresses;
     }
-    public void addAddress(String country, String city, String street, int postalCode) {
+    public void addAddress(String country, String city, String street, String postalCode) {
         int newId = addresses.size() + 1;
         this.addresses.add(new Address(country, city, street, postalCode, newId));
     }

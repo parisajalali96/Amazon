@@ -4,6 +4,7 @@ import Models.App;
 import Models.Discount;
 import Models.Product;
 import Models.Result;
+import Models.enums.Menu;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -109,5 +110,23 @@ public class StoreMenuController {
         product.addInStock(amount);
         return new Result(true, amount + " units of \"" +
                 product.getName() + "\" have been added to the stock.");
+    }
+
+    public Result updatePrice(String np, String id) {
+        double newPrice = Double.parseDouble(np);
+        int productId = Integer.parseInt(id);
+        if (getProduct(productId) == null) {
+            return new Result(false, "No product found.");
+        } else if (newPrice <= 0) {
+            return new Result(false, "Price must be a positive number.");
+        }
+        Product product = getProduct(productId);
+        product.setPrice(newPrice);
+        return new Result(true, "Price of \"" + product.getName() +
+                "\" has been updated to $" + newPrice  + ".");
+    }
+    public Result goBack() {
+        App.setCurrentMenu(Menu.MainMenu);
+        return new Result(true, "");
     }
 }

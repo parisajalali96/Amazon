@@ -43,11 +43,14 @@ public class Product {
     public double getPrice () {
         return sellingPrice;
     }
+    public void setPrice (double price) {
+        this.sellingPrice = price;
+    }
     public int getNumberSold () {
         return numberSold;
     }
-    public void addNumberSold () {
-        numberSold++;
+    public void addNumberSold (int amount) {
+        numberSold += amount;
     }
     public int getInStock () {
         return inStock;

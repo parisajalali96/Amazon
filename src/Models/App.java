@@ -13,7 +13,7 @@ public class App {
     private static final ArrayList<Order> orders = new ArrayList<>();
     private static User loggedinUser = null;
     private static Store loggedinStore = null;
-    private static Menu currentMenu = Menu.LoginMenu;
+    private static Menu currentMenu = Menu.MainMenu;
     private static final Scanner scanner = new Scanner(System.in);
 
     public static ArrayList<User> getUsers() {
@@ -50,6 +50,6 @@ public class App {
         App.loggedinStore = loggedinStore;
     }
     public static Scanner getScanner() {
-
+        return scanner;
     }
 }

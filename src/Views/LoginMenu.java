@@ -17,7 +17,7 @@ public class LoginMenu implements AppMenu{
                     matcher.group("password"), matcher.group("repeatPassword"), matcher.group("email"));
         } else if((matcher = LoginCommands.CreateStoreAccount.getMatcher(input)) != null) {
             controller.createStoreAccount(matcher.group("brand"), matcher.group("password"),
-                    matcher.group("repeatPassword"), matcher.group("email"));
+                    matcher.group("repeatedPassword"), matcher.group("email"));
         } else if((matcher = LoginCommands.LoginAsUser.getMatcher(input)) != null) {
             controller.loginAsUser(matcher.group("email"), matcher.group("password"));
         } else if((matcher = LoginCommands.LoginAsStore.getMatcher(input)) != null) {
@@ -28,6 +28,6 @@ public class LoginMenu implements AppMenu{
             controller.deleteAccount(matcher.group("password"), matcher.group("repeatedPassword"));
         } else if((matcher = LoginCommands.GoBack.getMatcher(input)) != null) {
             controller.goBack();
-        }
+        } else controller.invalidCommand();
     }
 }

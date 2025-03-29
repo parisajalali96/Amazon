@@ -13,12 +13,7 @@ import java.util.stream.Collectors;
 public class UserMenuController {
 
     public Result listMyOrders() {
-        ArrayList<Order> myOrders = new ArrayList<>();
-        for (Order order : App.getLoggedinUser().getOrders()) {
-            if (order.getCustomer().getEmail().equals(App.getLoggedinUser().getEmail())) {
-                myOrders.add(order);
-            }
-        }
+        ArrayList<Order> myOrders = App.getLoggedinUser().getOrders();
         if (myOrders.isEmpty()) {
             return new Result(false, "No orders found");
         }
@@ -26,15 +21,15 @@ public class UserMenuController {
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
         for (Order order : myOrders) {
             System.out.println("Order ID: " + order.getOrderID());
-            System.out.println("Shipping Address: " + order.getShippingAddress());
-            System.out.println("Total Items Ordered: " + myOrders.size());
+            System.out.println("Shipping Address: " + addressString(order.getShippingAddress()));
+            System.out.println("Total Items Ordered: " + order.getProducts().size());
             System.out.println("Products (Sorted by Name) : ");
             int counter = 1;
             HashMap<Product, Integer> products = order.getProducts();
             List<Map.Entry<Product, Integer>> productList = new ArrayList<>(products.entrySet());
             productList.sort(Comparator.comparing(entry -> entry.getKey().getName()));
-            for (Product product : products.keySet()) {
-                System.out.println(counter + "-" + product.getName());
+            for (Map.Entry<Product, Integer> entry : productList) {
+                System.out.println("  " + counter + "-" + entry.getKey().getName());
                 counter++;
             }
             System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -42,24 +37,30 @@ public class UserMenuController {
         return new Result(true, "");
     }
 
+    public String addressString(Address address) {
+        return address.getStreet() + ", " + address.getCity()  + ", " + address.getCountry();
+    }
     public Result showOrderDetails(String orderId) {
-        int id = Integer.parseInt(orderId);
+        int id = Integer.parseInt(orderId); //could cause issues
         System.out.println("Products in this order:");
         Order order = getOrder(id);
         if (order == null) return new Result(false, "Order not found");
         HashMap<Product, Integer> products = order.getProducts();
         List<Map.Entry<Product, Integer>> productList = new ArrayList<>(products.entrySet());
-        productList.sort(Comparator.comparing(entry -> entry.getKey().getName()));
+        productList.sort(Comparator.comparing(entry -> entry.getKey().getID()));
         int counter = 1;
         double totalPrice = 0;
-        for (Product product : products.keySet()) {
-            System.out.println(counter + "-" + " Product Name: " + product.getName());
-            System.out.println("ID: " + product.getID());
-            System.out.println("Brand: " + product.getBrand());
-            System.out.printf("Rating: %.1f/5\n", product.getRating());
-            System.out.println("Price: $" + product.getPrice());
+        for (Map.Entry<Product, Integer> entry : productList) {
+            System.out.println(counter++ + "-" + " Product Name: " + entry.getKey().getName());
+            System.out.println("    ID: " + entry.getKey().getID());
+            System.out.println("    Brand: " + entry.getKey().getBrand());
+            System.out.printf("    Rating: %.1f/5\n", entry.getKey().getRating());
+            System.out.println("    Quantity: " + entry.getValue());
+            if(entry.getValue() == 1) {
+                System.out.println("    Price: $" + entry.getKey().getPrice() + " each");
+            } else System.out.println("    Price: $" + entry.getKey().getPrice());
             System.out.println();
-            totalPrice += product.getPrice();
+            totalPrice += entry.getKey().getPrice()*entry.getValue();
         }
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
         System.out.println("**Total Cost: $" + totalPrice + "**");
@@ -123,13 +124,12 @@ public class UserMenuController {
 
     public Result addAddress(String country, String city, String street, String postal) {
         Matcher matcher = null;
-        int postalCode = Integer.parseInt(postal);
         if((matcher = UserCommands.Postal.getMatcher(postal)) == null) {
             return new Result(false, "Invalid postal code. It should be a 10-digit number.");
-        } else if (addressExists(postalCode)) {
+        } else if (addressExists(postal)){
             return new Result(false, "This postal code is already associated with an existing address.");
         }
-        App.getLoggedinUser().addAddress(country, city, street, postalCode);
+        App.getLoggedinUser().addAddress(country, city, street, postal);
         return new Result(true, "Address successfully added with id " + App.getLoggedinUser().getAddresses().size());
     }
 
@@ -143,7 +143,9 @@ public class UserMenuController {
         return new Result(true, "Address with id " + ID + " deleted successfully.");
     }
 
-    public void listAddresses() {
+    public Result listAddresses() {
+        if(App.getLoggedinUser().getAddresses().isEmpty())
+            return new Result(false, "No addresses found. Please add an address first.");
         for (Address address : App.getLoggedinUser().getAddresses()) {
             System.out.println("Saved Addresses");
             System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -156,6 +158,7 @@ public class UserMenuController {
             System.out.println();
             System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
         }
+        return new Result(true, "");
     }
 
     public Result addCreditCard(String cardNumber, String expDate, String cvv, String initialValue) {
@@ -167,7 +170,7 @@ public class UserMenuController {
             return new Result(false, "Invalid expiration date. Please enter a valid date in MM/YY format.");
         } else if ((matcher = UserCommands.CVV.getMatcher(cvv)) == null) {
             return new Result(false, "The CVV code must be 3 or 4 digits.");
-        } else if ((matcher = UserCommands.isValueNeg.getMatcher(cardNumber)) != null) {
+        } else if (value < 0) {
             return new Result(false, "The initial value cannot be negative.");
         } else if (creditCardExists(cardNumber)) {
             return new Result(false, "This card is already saved in your account.");
@@ -202,21 +205,23 @@ public class UserMenuController {
 
     public Result showCart() {
         ShoppingCart shoppingCart = App.getLoggedinUser().getShoppingCart();
-        if(shoppingCart.getProducts().isEmpty()) {
+        if(shoppingCart == null || shoppingCart.getProducts().isEmpty()) {
             return new Result(false, "Your shopping cart is empty.");
         }
         System.out.println("Your Shopping Cart:");
         System.out.println("------------------------------------");
         HashMap<Product,Integer> products = shoppingCart.getProducts();
-        for (Product product : shoppingCart.getProducts().keySet()) {
-            System.out.println("Product ID :" + product.getID());
-            System.out.println("Name :" + product.getName());
-            System.out.println("Quantity: " + products.get(product));
-            if(products.get(product) > 1) System.out.println("Price :" + product.getPrice() + " each");
-            else System.out.println("Price : $" + product.getPrice());
-            System.out.println("Total Price: $" + product.getPrice()*products.get(product));
-            System.out.println("Brand :" + product.getBrand());
-            System.out.printf("Rating: %.1f/5\n", product.getRating());
+        List<Map.Entry<Product, Integer>> productList = new ArrayList<>(products.entrySet());
+        productList.sort(Comparator.comparing(entry -> entry.getKey().getName()));
+        for (Map.Entry<Product, Integer> entry : productList) {
+            System.out.println("Product ID :" + entry.getKey().getID());
+            System.out.println("Name :" + entry.getKey().getName());
+            System.out.println("Quantity: " + products.get(entry.getKey()));
+            if(entry.getValue() > 1) System.out.println("Price :$" + entry.getKey().getPrice() + " each");
+            else System.out.println("Price : $" + entry.getKey().getPrice());
+            System.out.println("Total Price: $" + entry.getKey().getPrice()*entry.getValue());
+            System.out.println("Brand :" + entry.getKey().getBrand());
+            System.out.printf("Rating: %.1f/5\n", entry.getKey().getRating());
             System.out.println("------------------------------------");
         }
         return new Result(true, "");
@@ -228,19 +233,22 @@ public class UserMenuController {
         int creditCardID = Integer.parseInt(cardID);
         Address address;
         CreditCard creditCard;
-        double totalPrice = getShoppingCartBalance();
-        if(App.getLoggedinUser().getShoppingCart().getProducts().isEmpty()) {
+        double totalPrice;
+        if(App.getLoggedinUser().getShoppingCart() == null || App.getLoggedinUser().getShoppingCart().getProducts().isEmpty() ) {
             return new Result(false, "Your shopping cart is empty.");
         } else if (getAddress(addressID) == null) {
             return new Result(false, "The provided address ID is invalid.");
         } else if (getCreditCard(creditCardID) == null) {
             return new Result(false, "The provided card ID is invalid.");
-        } else if (getCreditCard(creditCardID).getBalance() < totalPrice) {
+        } else if (getCreditCard(creditCardID).getBalance() < ( totalPrice = getShoppingCartBalance())) {
             return new Result(false, "Insufficient balance in the selected card.");
         }
         creditCard = getCreditCard(creditCardID);
         address = getAddress(addressID);
         App.getLoggedinUser().addOrder(App.getLoggedinUser().getShoppingCart().getProducts(), address);
+        for (Product product : App.getLoggedinUser().getShoppingCart().getProducts().keySet()) {
+            clearFromStore(product.getID(), App.getLoggedinUser().getShoppingCart().getProducts().get(product));
+        }
         clearShoppingCart();
         String addressDetails = address.getStreet()+ ", " + address.getCity() + ", " + address.getCountry();
         return new Result(true, "Order has been placed successfully!\n" +
@@ -253,7 +261,7 @@ public class UserMenuController {
         int quantityInt = Integer.parseInt(quantity);
         int ID = Integer.parseInt(productId);
         Product productToRemove;
-        if(App.getLoggedinUser().getShoppingCart().getProducts().isEmpty()) {
+        if(App.getLoggedinUser().getShoppingCart() == null ||App.getLoggedinUser().getShoppingCart().getProducts().isEmpty()) {
             return new Result(false, "Your shopping cart is empty.");
         } else if ((productToRemove = getProductFromCart(ID)) == null) {
             return new Result(false, "The product with ID " + ID + " is not in your cart.");
@@ -282,6 +290,35 @@ public class UserMenuController {
             }
         }
         return null;
+    }
+
+    public void clearFromStore(int id, int quantity) {
+        for (Product product : App.getProducts()) {
+            if(product.getID() == id) {
+                if(product.getDiscount() == null) {
+                    product.addInStock(-1*quantity);
+                    product.addNumberSold(quantity);
+                } else {
+                    if(product.getDiscount().getQuantity() < quantity) {
+                        for (int i = 0; i < product.getDiscount().getQuantity(); i++) {
+                            product.addInStock(-1);
+                            product.setPrice(product.getPrice()*(1 - (double)product.getDiscount().getDiscountPercentage() /100));
+                        }
+                        product.getDiscount().setQuantity(0);
+                        product.addInStock(quantity - product.getDiscount().getQuantity());
+                        product.addNumberSold(quantity);
+                    } else {
+                        for (int i = 0; i < quantity; i++) {
+                            product.addInStock(-1);
+                            product.setPrice(product.getPrice()*(1 - (double)product.getDiscount().getDiscountPercentage() /100));
+                        }
+                        product.getDiscount().setQuantity(product.getDiscount().getQuantity() - quantity);
+                        product.addInStock(product.getDiscount().getQuantity() - quantity);
+                        product.addNumberSold(quantity);
+                    }
+                }
+            }
+        }
     }
     public void clearShoppingCart() {
         ShoppingCart shoppingCart = App.getLoggedinUser().getShoppingCart();
@@ -321,9 +358,9 @@ public class UserMenuController {
         }
         return false;
     }
-    public boolean addressExists(int postal) {
+    public boolean addressExists(String postal) {
         for (Address address : App.getLoggedinUser().getAddresses()) {
-            if (address.getPostalCode() == postal) {
+            if (address.getPostalCode().equals(postal)) {
                 return true;
             }
         }
