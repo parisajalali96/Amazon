@@ -128,7 +128,7 @@ public class LoginMenuController {
 
     public Result goBack() {
         App.setCurrentMenu(Menu.MainMenu);
-        return new Result(true, "");
+        return new Result(true, "Redirecting to the MainMenu ...");
     }
     public Store getStore (String email) {
         for(Store store : App.getStores()) {
@@ -189,6 +189,6 @@ public class LoginMenuController {
 
 
     public Result invalidCommand() {
-        return new Result(false, "invalid command.");
+        return new Result(false, "invalid command");
     }
 }

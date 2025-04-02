@@ -14,11 +14,9 @@ public class ProductMenu implements AppMenu {
         if((matcher = ProductCommands.ShowProducts.getMatcher(input)) != null) {
             controller.showProducts(matcher.group("sort"), 0);
         } else if((matcher = ProductCommands.ShowNext10Products.getMatcher(input)) != null) { // fix logic
-            controller.showProducts("",
-                    App.getProducts().indexOf(controller.showProducts("", 0)));
+            controller.showNext10Products();
         } else if((matcher = ProductCommands.ShowPast10Products.getMatcher(input)) != null) { // fix logic
-            controller.showProducts("",
-                    App.getProducts().indexOf(controller.showProducts("", 0)) - 8);
+            controller.showPrevious10Products();
         } else if((matcher = ProductCommands.ShowInformation.getMatcher(input)) != null) {
             controller.showProductInfo(matcher.group("id"));
         } else if((matcher = ProductCommands.RateProduct.getMatcher(input)) != null) {

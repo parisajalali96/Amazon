@@ -11,21 +11,35 @@ import java.util.Scanner;
 
 public class StoreMenuController {
     public Result addProduct(String name, String cost, String price, String description, String num) {
-        double productCost = Double.parseDouble(cost);
-        double productPrice = Double.parseDouble(price);
-        int numberToSell = Integer.parseInt(num);
+        double productCost;
+        try {
+            productCost = Double.parseDouble(cost);
+        } catch (NumberFormatException e) {
+            return new Result(false, "Selling price must be greater than or equal to the producer cost.");
+        }
+        double productPrice;
+        try {
+            productPrice = Double.parseDouble(price);
+        } catch (NumberFormatException e) {
+            return new Result(false, "Selling price must be greater than or equal to the producer cost.");
+        }
+        int numberToSell;
+        try {
+            numberToSell = Integer.parseInt(num);
+        } catch (NumberFormatException e) {
+            return new Result(false, "Number of products must be a positive number.");
+        }
 
         if(productCost > productPrice) {
             return new Result(false, "Selling price must be greater than or equal to the producer cost.");
-        } else if(productPrice <= 0) {
+        } else if(numberToSell <= 0) {
             return new Result(false, "Number of products must be a positive number.");
         }
 
         App.getLoggedinStore().addProduct(name, App.getLoggedinStore().getBrand(),
                 productPrice, productCost, numberToSell, description);
-        int lastId = App.getProducts().size() + 101;
-        return new Result(true, "Product \"" + getProduct(lastId).getName() + "\" has been added successfully" + "" +
-                " with ID " + lastId+ ".");
+        int lastId = App.getProducts().size() + 100;
+        return new Result(true, "Product \"" + getProduct(lastId).getName() + "\" has been added successfully with ID " + lastId+ ".");
     }
 
     public Product getProduct(int id) {
@@ -50,7 +64,7 @@ public class StoreMenuController {
             return new Result(false, "Oops! Not enough stock to apply the discount to that many items.");
         }
         Product product = getProduct(productId);
-        product.addDiscount(new Discount(quantity, discount));
+        product.setDiscount(new Discount(quantity, discount));
         return new Result(true, "A " + discount + "% discount has been applied to " + quantity +
                 " units of product ID " + product.getID() + ".");
 
@@ -60,10 +74,10 @@ public class StoreMenuController {
         double revenue = 0;
         double profit = 0;
         double costs = 0;
-
+        int discountNum = 0;
         for (Product product : App.getLoggedinStore().getProducts()) {
-            revenue += product.getPrice();
             costs += product.getCost();
+            revenue += product.getRevenue();
         }
         profit = revenue - costs;
         return new Result(true, "Total Profit: $" + profit + "\n" +
@@ -122,11 +136,15 @@ public class StoreMenuController {
         }
         Product product = getProduct(productId);
         product.setPrice(newPrice);
-        return new Result(true, "Price of \"" + product.getName() +
-                "\" has been updated to $" + newPrice  + ".");
+        System.out.printf("Price of \"%s\" has been updated to $%.1f.\n", product.getName(), newPrice);
+        return new Result(true, "");
     }
     public Result goBack() {
         App.setCurrentMenu(Menu.MainMenu);
-        return new Result(true, "");
+        return new Result(true, "Redirecting to the MainMenu ...");
+    }
+
+    public Result invalidCommand() {
+        return new Result(false, "invalid command");
     }
 }

@@ -11,7 +11,8 @@ public class Product {
     int ID;
     int numberSold = 0;
     int inStock;
-    ArrayList<Review> reviews;
+    double revenue;
+    ArrayList<Review> reviews = new ArrayList<>();
     String description;
     Discount discount = null;
 
@@ -37,11 +38,22 @@ public class Product {
     public double getRating () {
         return rating;
     }
+    public void addRating (double rating) {
+        this.rating += rating;
+        this.rating /= 2;
+    }
     public double getCost () {
         return productCost;
     }
     public double getPrice () {
         return sellingPrice;
+    }
+    public double getSellingPrice () {
+        if(discount != null) {
+            return this.sellingPrice*(1-(double)discount.getDiscountPercentage()/100);
+        } else {
+            return this.sellingPrice;
+        }
     }
     public void setPrice (double price) {
         this.sellingPrice = price;
@@ -70,11 +82,17 @@ public class Product {
     public void setDescription (String description) {
         this.description = description;
     }
-    public void addDiscount (Discount discount) {
+    public void setDiscount (Discount discount) {
         this.discount = discount;
     }
     public Discount getDiscount () {
         return discount;
+    }
+    public void addToRevenue (double amount) {
+        revenue += amount;
+    }
+    public double getRevenue () {
+        return revenue;
     }
 
 }

@@ -4,11 +4,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public enum MainMenuCommands implements Command {
-    GoToMenu("\\s*go to\\s+-m\\s+(?<menu>\\S+(\\s*\\S+)*)"),
-    LoginMenu("LoginMenu"),
-    UserMenu("UserMenu"),
-    StoreMenu("StoreMenu"),
-    ProductMenu("ProductMenu");
+    GoToMenu("\\s*go to\\s+-m\\s+(?<menu>\\S+(\\s*\\S+)*)\\s*"),
+    LoginMenu("\\s*LoginMenu\\s*"),
+    UserMenu("\\s*UserMenu\\s*"),
+    StoreMenu("\\s*StoreMenu\\s*"),
+    ProductMenu("\\s*ProductMenu\\s*");
 
 
     private final String pattern;

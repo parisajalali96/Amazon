@@ -15,7 +15,7 @@ public class UserMenuController {
     public Result listMyOrders() {
         ArrayList<Order> myOrders = App.getLoggedinUser().getOrders();
         if (myOrders.isEmpty()) {
-            return new Result(false, "No orders found");
+            return new Result(false, "No orders found.");
         }
         System.out.println("order History");
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -41,9 +41,14 @@ public class UserMenuController {
         return address.getStreet() + ", " + address.getCity()  + ", " + address.getCountry();
     }
     public Result showOrderDetails(String orderId) {
-        int id = Integer.parseInt(orderId); //could cause issues
+        int id;
+        try {
+            id = Integer.parseInt(orderId);
+        } catch (NumberFormatException e) {
+            return new Result(false, "Order not found.");
+        }
         Order order = getOrder(id);
-        if (order == null) return new Result(false, "Order not found");
+        if (order == null) return new Result(false, "Order not found.");
         HashMap<Product, Integer> products = order.getProducts();
         List<Map.Entry<Product, Integer>> productList = new ArrayList<>(products.entrySet());
         productList.sort(Comparator.comparing(entry -> entry.getKey().getID()));
@@ -124,18 +129,23 @@ public class UserMenuController {
 
     public Result addAddress(String country, String city, String street, String postal) {
         Matcher matcher = null;
-        if((matcher = UserCommands.Postal.getMatcher(postal)) == null) {
+        if((matcher = UserCommands.Postal.getMatcher(postal.trim())) == null) {
             return new Result(false, "Invalid postal code. It should be a 10-digit number.");
         } else if (addressExists(postal)){
             return new Result(false, "This postal code is already associated with an existing address.");
         }
         App.getLoggedinUser().addAddress(country, city, street, postal);
-        return new Result(true, "Address successfully added with id " + App.getLoggedinUser().getAddresses().size());
+        return new Result(true, "Address successfully added with id " + App.getLoggedinUser().getAddresses().size() + ".");
     }
 
     public Result deleteAddress(String addressId) {
         Matcher matcher = null;
-        int ID = Integer.parseInt(addressId);
+        int ID;
+        try {
+            ID = Integer.parseInt(addressId);
+        } catch (NumberFormatException e) {
+            return new Result(false, "No address found.");
+        }
         if(getAddress(ID) == null) {
             return new Result(false, "No address found.");
         }
@@ -163,7 +173,12 @@ public class UserMenuController {
 
     public Result addCreditCard(String cardNumber, String expDate, String cvv, String initialValue) {
         Matcher matcher = null;
-        int value = Integer.parseInt(initialValue);
+        int value;
+        try {
+            value = Integer.parseInt(initialValue);
+        } catch (NumberFormatException e) {
+            return new Result(false, "The initial value cannot be negative.");
+        }
         if(cardNumber.length() != 16) {
             return new Result(false, "The card number must be exactly 16 digits.");
         } else if ((matcher = UserCommands.ExpirationDate.getMatcher(expDate)) == null) {
@@ -182,8 +197,19 @@ public class UserMenuController {
 
     public Result chargeCreditCard(String amount, String id) {
         Matcher matcher = null;
-        double value = Double.parseDouble(amount);
-        int ID = Integer.parseInt(id);
+        int ID;
+        try {
+            ID = Integer.parseInt(id);
+        } catch (NumberFormatException e) {
+            return new Result(false, "No credit card found.");
+        }
+        double value;
+        try {
+            value = Double.parseDouble(amount);
+        } catch (NumberFormatException e) {
+            return new Result(false, "The amount must be greater than zero.");
+        }
+
         if(value <= 0) {
             return new Result(false, "The amount must be greater than zero.");
         } else if (getCreditCard(ID) == null) {
@@ -196,7 +222,12 @@ public class UserMenuController {
     }
 
     public Result creditCardBalance(String id) {
-        int ID = Integer.parseInt(id);
+        int ID;
+        try {
+            ID = Integer.parseInt(id);
+        } catch (NumberFormatException e) {
+            return new Result(false, "No credit card found.");
+        }
         if(getCreditCard(ID) == null) {
             return new Result(false, "No credit card found.");
         }
@@ -229,8 +260,18 @@ public class UserMenuController {
 
     public Result checkout(String cardID, String addID) {
         Matcher matcher = null;
-        int addressID = Integer.parseInt(addID);
-        int creditCardID = Integer.parseInt(cardID);
+        int addressID;
+        try {
+            addressID = Integer.parseInt(addID);
+        } catch (NumberFormatException e) {
+            return new Result(false, "The provided address ID is invalid.");
+        }
+        int creditCardID;
+        try {
+            creditCardID = Integer.parseInt(cardID);
+        } catch (NumberFormatException e) {
+            return new Result(false, "The provided card ID is invalid.");
+        }
         Address address;
         CreditCard creditCard;
         double totalPrice;
@@ -247,7 +288,7 @@ public class UserMenuController {
         address = getAddress(addressID);
         App.getLoggedinUser().addOrder(App.getLoggedinUser().getShoppingCart().getProducts(), address);
         for (Product product : App.getLoggedinUser().getShoppingCart().getProducts().keySet()) {
-            clearFromStore(product.getID(), App.getLoggedinUser().getShoppingCart().getProducts().get(product));
+            sell(product.getID(), App.getLoggedinUser().getShoppingCart().getProducts().get(product), creditCard);
         }
         clearShoppingCart();
         String addressDetails = address.getStreet()+ ", " + address.getCity() + ", " + address.getCountry();
@@ -258,8 +299,18 @@ public class UserMenuController {
     }
 
     public Result removeFromShoppingCart(String productId, String quantity) {
-        int quantityInt = Integer.parseInt(quantity);
-        int ID = Integer.parseInt(productId);
+        int quantityInt;
+        try {
+            quantityInt = Integer.parseInt(quantity);
+        } catch (NumberFormatException e) {
+            return new Result(false, "Quantity must be a positive number.");
+        }
+        int ID;
+        try {
+            ID = Integer.parseInt(productId);
+        } catch (NumberFormatException e) {
+            return new Result(false, "The product with ID " + productId + " is not in your cart.");
+        }
         Product productToRemove;
         if(App.getLoggedinUser().getShoppingCart() == null ||App.getLoggedinUser().getShoppingCart().getProducts().isEmpty()) {
             return new Result(false, "Your shopping cart is empty.");
@@ -279,7 +330,7 @@ public class UserMenuController {
 
     public Result goBack() {
       App.setCurrentMenu(Menu.MainMenu);
-      return new Result(true, "Redirecting to the Main Menu ...");
+      return new Result(true, "Redirecting to the MainMenu ...");
     }
 
     public Product getProductFromCart(int productID) {
@@ -292,33 +343,35 @@ public class UserMenuController {
         return null;
     }
 
-    public void clearFromStore(int id, int quantity) {
-        for (Product product : App.getProducts()) {
+    public void sell(int id, int quantity, CreditCard creditCard) {
+        double totalExpense = 0;
+        for (Product product : App.getLoggedinUser().getShoppingCart().getProducts().keySet()) {
+            double productExpense = 0;
             if(product.getID() == id) {
-                if(product.getDiscount() == null) {
-                    product.addInStock(-1*quantity);
-                    product.addNumberSold(quantity);
-                } else {
-                    if(product.getDiscount().getQuantity() < quantity) {
-                        for (int i = 0; i < product.getDiscount().getQuantity(); i++) {
-                            product.addInStock(-1);
-                            product.setPrice(product.getPrice()*(1 - (double)product.getDiscount().getDiscountPercentage() /100));
-                        }
-                        product.getDiscount().setQuantity(0);
-                        product.addInStock(quantity - product.getDiscount().getQuantity());
-                        product.addNumberSold(quantity);
-                    } else {
-                        for (int i = 0; i < quantity; i++) {
-                            product.addInStock(-1);
-                            product.setPrice(product.getPrice()*(1 - (double)product.getDiscount().getDiscountPercentage() /100));
-                        }
-                        product.getDiscount().setQuantity(product.getDiscount().getQuantity() - quantity);
-                        product.addInStock(product.getDiscount().getQuantity() - quantity);
-                        product.addNumberSold(quantity);
+                if(product.getDiscount() != null) {
+                    Discount discount = product.getDiscount();
+                    if(quantity >= discount.getQuantity()) {
+                        discount.addNumberApplied(discount.getQuantity());
+                        productExpense += (product.getPrice()*(quantity - discount.getQuantity()) +
+                                                        (product.getPrice()*discount.getQuantity()*(1-(double)discount.getDiscountPercentage()/100)));
+                    } else if(quantity < discount.getQuantity()) {
+                        discount.addNumberApplied(quantity);
+                        productExpense += product.getPrice()*quantity*(1-(double)discount.getDiscountPercentage()/100);
+
                     }
+                    totalExpense += productExpense;
+                    product.addInStock(-quantity);
+                    product.addNumberSold(quantity);
+
+                } else {
+                    productExpense += (product.getPrice()*quantity);
+                    product.addInStock(-quantity);
+                    product.addNumberSold(quantity);
                 }
+                product.addToRevenue(productExpense);
             }
         }
+        creditCard.increaseBalance(-1*totalExpense);
     }
     public void clearShoppingCart() {
         ShoppingCart shoppingCart = App.getLoggedinUser().getShoppingCart();
@@ -395,5 +448,8 @@ public class UserMenuController {
     public Result invalidCommand() {
         return new Result(false, "invalid command");
     }
+
+
+
 
 }

@@ -3,6 +3,7 @@ package Models;
 public class Discount {
     int quantity;
     int discountPercentage;
+    int numberApplied;
 
     public Discount(int quantity, int discountPercentage) {
         this.quantity = quantity;
@@ -20,5 +21,11 @@ public class Discount {
     }
     public void setDiscountPercentage(int discountPercentage) {
         this.discountPercentage = discountPercentage;
+    }
+    public int getNumberApplied() {
+        return numberApplied;
+    }
+    public void addNumberApplied(int numberApplied) {
+        this.numberApplied += numberApplied;
     }
 }

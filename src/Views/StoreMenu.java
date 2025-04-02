@@ -12,6 +12,7 @@ public class StoreMenu implements AppMenu{
     @Override
     public void check (String input) {
         Matcher matcher = null;
+
         if ((matcher = StoreCommands.AddProduct.getMatcher(input)) != null) {
             controller.addProduct(matcher.group("name"), matcher.group("productCost"),
                     matcher.group("price"), matcher.group("about"),
@@ -26,9 +27,9 @@ public class StoreMenu implements AppMenu{
         } else if ((matcher = StoreCommands.AddStock.getMatcher(input)) != null) {
             controller.addStock(matcher.group("productId"), matcher.group("amount"));
         } else if ((matcher = StoreCommands.UpdatePrice.getMatcher(input)) != null) {
-            controller.updatePrice(matcher.group("productId"), matcher.group("newPrice"));
+            controller.updatePrice(matcher.group("newPrice"), matcher.group("productId"));
         } else if ((matcher = StoreCommands.GoBack.getMatcher(input)) != null) {
             controller.goBack();
-        }
+        } else controller.invalidCommand();
     }
 }
